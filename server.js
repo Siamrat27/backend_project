@@ -11,6 +11,7 @@ connectDB();
 
 //Route file
 const coworkingspaces = require('./routes/coworkingspaces');
+const auth = require('./routes/auth');
 
 const app=express();
 
@@ -18,6 +19,7 @@ const app=express();
 app.use(express.json());
 
 app.use('/api/v1/coworkingspaces',coworkingspaces);
+app.use('/api/v1/auth',auth);
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT,console.log('Server running in ',process.env.NODE_ENV,' mode on port ',PORT));
@@ -28,5 +30,4 @@ process.on(`unhandledRejection`,(err,promise)=>{
     //Close server & exit process
     server.close(()=>process.exit(1));
 });
-
 
