@@ -1,8 +1,16 @@
 const express = require('express');
-const {getcoworkingspace,getcoworkingspaces,updatecoworkingspace,createcoworkingspace,deletecoworkingspace} = require('../controllers/coworkingspaces');
+const {getCoworkingspace,getCoworkingspaces,updateCoworkingspace,createCoworkingspace,deleteCoworkingspace} = require('../controllers/Coworkingspaces');
 const router = express.Router();
 
-router.route('/').get(getcoworkingspaces).post(createcoworkingspace);
-router.route('/:id').get(getcoworkingspace).put(updatecoworkingspace).delete(deletecoworkingspace);
+//Include other resource routers
+const reservationRouter=require('./reservations');
+
+const {protect,authorize}=require('../middleware/auth');
+
+//Re-route into other resource routers
+router.use('/:coworkingspaceId/reservations/',reservationRouter);
+
+router.route('/').get(getCoworkingspaces).post(protect,authorize('admin'),createCoworkingspace);
+router.route('/:id').get(getCoworkingspace).put(protect,authorize('admin'),updateCoworkingspace).delete(protect,authorize('admin'),deleteCoworkingspace);
 
 module.exports=router;
