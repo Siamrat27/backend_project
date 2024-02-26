@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const cookieParser=require('cookie-parser');
 const connectDB = require('./config/db');
 
 //Load env vars
@@ -17,6 +18,9 @@ const app=express();
 
 //Body parser
 app.use(express.json());
+
+//Cookie parser
+app.use(cookieParser());
 
 app.use('/api/v1/coworkingspaces',coworkingspaces);
 app.use('/api/v1/auth',auth);
