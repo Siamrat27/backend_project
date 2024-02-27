@@ -11,7 +11,7 @@ exports.getReservations=async(req,res,next)=>{
     if(req.user.role!=='admin'){
         query=Reservation.find({user:req.user.id}).populate({
             path:'coworkingspace',
-            select:'name province tel'
+            select:'name province tel opentime closetime'
         });
     } else{//If you are an admin, you can see all!
         if (req.params.coworkingspaceId) { // Corrected to req.params.coworkingspaceId
@@ -66,6 +66,12 @@ exports.getReservation=async(req,res,next)=>{
     }
 }
 
+//Compare time in second
+function parseTime(timeString) {
+    var parts = timeString.split(':');
+    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
 //@desc Add reservation
 //@route POST /api/v1/coworkingspaces/:coworkingspaceID/reservations/
 //@access Private
@@ -78,6 +84,12 @@ exports.addReservation=async(req,res,next)=>{
             return res.status(404).json({success:false,message:`No coworkingspace with the id of ${req.params.coworkingspaceId}`})
         }
         console.log(req.body);
+
+        //Check Coworking open in timereservation
+        if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
+        && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
+            return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} can not be reserve this time`});
+        }
 
         //add user Id to req.body
         req.body.user=req.user.id;

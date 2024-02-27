@@ -1,4 +1,3 @@
-
 const mongoose = require(`mongoose`);
 
 const CoworkingspaceSchema = new mongoose.Schema({
@@ -30,10 +29,14 @@ const CoworkingspaceSchema = new mongoose.Schema({
         type: String
     },
     opentime:{
-        type: String
+        type: String,
+        required:[true,'Please add an opentime'],
+        maxlength:[5,'Time can not be more than 5 digits']
     },
     closetime:{
-        type: String
+        type: String,
+        required:[true,'Please add an closetime'],
+        maxlength:[5,'Time can not be more than 5 digits']
     }
 },{
     toJSON:{virtuals:true},
