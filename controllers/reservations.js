@@ -88,7 +88,7 @@ exports.addReservation=async(req,res,next)=>{
         //Check Coworking open in timereservation
         if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
         && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
-            return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} can not be reserve this time`});
+            return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} open between ${coworkingspace.opentime} - ${coworkingspace.closetime}`});
         }
 
         //add user Id to req.body
