@@ -166,7 +166,7 @@ exports.deleteReservation=async(req,res,next)=>{
 
         //Make sure user is the reservation owner
         if(reservation.user.toString()!==req.user.id && req.user.role !== 'admin'){
-            return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to update this bootcamp`})
+            return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to update this reservation`})
         }
 
         await reservation.deleteOne();
