@@ -15,6 +15,10 @@ const ReservationSchema = new mongoose.Schema({
         ref:'Coworkingspace',
         required:true
     },
+    timereservation:{
+        required:[true,'Please add timereservation'],
+        type:String
+    },
     createAt:{
         type:Date,
         default:Date.now

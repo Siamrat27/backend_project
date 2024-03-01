@@ -66,6 +66,12 @@ exports.getReservation=async(req,res,next)=>{
     }
 }
 
+//Compare time in second
+function parseTime(timeString) {
+    var parts = timeString.split(':');
+    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
 //@desc Add reservation
 //@route POST /api/v1/reservations/:coworkingspaceID/reservations/
 //@access Private
@@ -87,6 +93,12 @@ exports.addReservation=async(req,res,next)=>{
         //If the user is not an admin, they can only create 3 reservation.
         if(existedReservations.length>=3 && req.user.role !=='admin'){
             return res.status(400).json({success:false,message:`The user with ID ${req.user.id} has already made 3 reservations`})
+        }
+
+        //Check Coworking open in timereservation
+        if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
+        && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
+            return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} open between ${coworkingspace.opentime} - ${coworkingspace.closetime}`});
         }
 
         const reservation = await Reservation.create(req.body);
@@ -114,6 +126,18 @@ exports.updateReservation=async(req,res,next)=>{
         //Make sure user is the appoint owner
         if(reservation.user.toString()!==req.user.id && req.user.role!=='admin'){
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to update this reservation`})
+        }
+
+        // Fetch the coworkingspace associated with the reservation
+        const coworkingspace = await Coworkingspace.findById(reservation.coworkingspace);
+        if (!coworkingspace) {
+            return res.status(404).json({ success: false, message: `No coworkingspace associated with the reservation` });
+        }
+
+        // Check Coworking open in timereservation
+        if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
+        && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
+            return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} open between ${coworkingspace.opentime} - ${coworkingspace.closetime}`});
         }
 
         reservation=await Reservation.findByIdAndUpdate(req.params.id,req.body,{
