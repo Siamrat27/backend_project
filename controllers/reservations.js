@@ -104,10 +104,8 @@ function isInRangeTime(startTime, endTime, testStartTime, testEndTime) {
     const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
     const testStartMinutes = parseInt(testStartTime.split(':')[0]) * 60 + parseInt(testStartTime.split(':')[1]);
     const testEndMinutes = parseInt(testEndTime.split(':')[0]) * 60 + parseInt(testEndTime.split(':')[1]);
-    if(!(parseInt(startTime.split(':')[0])<=23 && parseInt(endTime.split(':')[0])
-    && parseInt(endTime.split(':')[0])<parseInt(startTime.split(':')[0])) && 
-    (parseInt(testStartTime.split(':')[0])<=23 && parseInt(testEndTime.split(':')[0])
-    && parseInt(testEndTime.split(':')[0])<parseInt(testStartTime.split(':')[0]))){
+    if(!(parseInt(startTime.split(':')[0])<=23 && (parseInt(endTime.split(':')[0])>=0) && parseInt(endTime.split(':')[0])<parseInt(startTime.split(':')[0])) && 
+    (parseInt(testStartTime.split(':')[0])<=23 && (parseInt(testEndTime.split(':')[0])>=0) && parseInt(testEndTime.split(':')[0])<parseInt(testStartTime.split(':')[0]))){
       return false;
     }
     // If start time is greater than end time, it means the time range spans across midnight
