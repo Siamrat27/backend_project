@@ -66,11 +66,63 @@ exports.getReservation=async(req,res,next)=>{
     }
 }
 
-//Compare time in second
+function getStartTime(timeRange) {
+    const parts = timeRange.split('-');
+    return parts[0].trim();
+}
+
+function getEndTime(timeRange) {
+    const parts = timeRange.split('-');
+    return parts[1].trim();
+}
+
 function parseTime(timeString) {
     var parts = timeString.split(':');
     return parseInt(parts[0]) * 60 + parseInt(parts[1]);
 }
+
+function isMoreThan3Hours(startTime, endTime) {
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    let [endHour, endMinute] = endTime.split(':').map(Number);
+
+    // Adjust end time if it's earlier than start time
+    if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
+        endHour += 24; // Add 24 hours
+    }
+
+    // Convert times to minutes
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    // Calculate duration in minutes
+    const durationInMinutes = endMinutes - startMinutes;
+
+    // Check if duration is greater than 180 minutes (3 hours)
+    return durationInMinutes > 180;
+}
+
+
+function isInRangeTime(startTime, endTime, testStartTime, testEndTime) {
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    const [testStartHour, testStartMinute] = testStartTime.split(':').map(Number);
+    const [testEndHour, testEndMinute] = testEndTime.split(':').map(Number);
+
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+    const testStartMinutes = testStartHour * 60 + testStartMinute;
+    const testEndMinutes = testEndHour * 60 + testEndMinute;
+    if (testStartMinutes >= startMinutes && testEndMinutes <= endMinutes) {
+        return true;
+    }
+    if (testStartMinutes < testEndMinutes && testStartMinutes >= startMinutes && testEndMinutes <= endMinutes) {
+        return true;
+    }
+    return false;
+}
+
+
+
 
 //@desc Add reservation
 //@route POST /api/v1/reservations/:coworkingspaceID/reservations/
@@ -94,11 +146,16 @@ exports.addReservation=async(req,res,next)=>{
         if(existedReservations.length>=3 && req.user.role !=='admin'){
             return res.status(400).json({success:false,message:`The user with ID ${req.user.id} has already made 3 reservations`})
         }
+        const reservationTimeStart = getStartTime(req.body.timereservation);
+        const reservationTimeEnd = getEndTime(req.body.timereservation);
 
         //Check Coworking open in timereservation
-        if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
-        && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
+        if(!isInRangeTime(coworkingspace.opentime,coworkingspace.closetime,reservationTimeStart,reservationTimeEnd)){
             return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} open between ${coworkingspace.opentime} - ${coworkingspace.closetime}`});
+        }
+
+        if(isMoreThan3Hours(reservationTimeStart,reservationTimeEnd)){
+            return res.status(400).json({success:false,message:`You can not reserve more than 3 hours`})
         }
 
         const reservation = await Reservation.create(req.body);
@@ -111,6 +168,7 @@ exports.addReservation=async(req,res,next)=>{
         return res.status(500).json({success:false,message:'Cannot create Reservation'});
     }
 }
+
 
 
 //@desc Update reservation
@@ -135,10 +193,20 @@ exports.updateReservation=async(req,res,next)=>{
         }
 
         // Check Coworking open in timereservation
-        if(!(parseTime(coworkingspace.opentime)<=parseTime(req.body.timereservation) 
-        && parseTime(req.body.timereservation)<=parseTime(coworkingspace.closetime))){
+
+        const reservationTimeStart = getStartTime(req.body.timereservation);
+        const reservationTimeEnd = getEndTime(req.body.timereservation);
+
+        //Check Coworking open in timereservation
+        if(!isInRangeTime(coworkingspace.opentime,coworkingspace.closetime,reservationTimeStart,reservationTimeEnd)){
             return res.status(400).json({success:false,message:`Coworkingspace ${coworkingspace.id} open between ${coworkingspace.opentime} - ${coworkingspace.closetime}`});
         }
+
+        if(isMoreThan3Hours(reservationTimeStart,reservationTimeEnd)){
+            return res.status(400).json({success:false,message:`You can not reserve more than 3 hours`})
+        }
+
+        
 
         reservation=await Reservation.findByIdAndUpdate(req.params.id,req.body,{
             new:true,

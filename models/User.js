@@ -33,6 +33,10 @@ const UserSchema=new mongoose.Schema({
     createdAt:{
         type: Date,
         defult:Date.now
+    },
+    tel: {
+        type: String,
+        required:[true,'Please add a tel']
     }
 });
 
