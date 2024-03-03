@@ -104,14 +104,24 @@ function isInRangeTime(startTime, endTime, testStartTime, testEndTime) {
     const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
     const testStartMinutes = parseInt(testStartTime.split(':')[0]) * 60 + parseInt(testStartTime.split(':')[1]);
     const testEndMinutes = parseInt(testEndTime.split(':')[0]) * 60 + parseInt(testEndTime.split(':')[1]);
-  
+    if(!(parseInt(startTime.split(':')[0])<=23 && parseInt(endTime.split(':')[0])
+    && parseInt(endTime.split(':')[0])<parseInt(startTime.split(':')[0])) && 
+    (parseInt(testStartTime.split(':')[0])<=23 && parseInt(testEndTime.split(':')[0])
+    && parseInt(testEndTime.split(':')[0])<parseInt(testStartTime.split(':')[0]))){
+      return false;
+    }
     // If start time is greater than end time, it means the time range spans across midnight
     if (startMinutes > endMinutes) {
-      // Test start time should be greater than start time and test end time should be less than end time
-      return testStartMinutes >= startMinutes && testEndMinutes <= endMinutes;
+      // Test start time should be greater than start time or less than end time
+      return testStartMinutes >= startMinutes || testEndMinutes <= endMinutes || (testStartMinutes < testEndMinutes && testStartMinutes < endMinutes && testEndMinutes > startMinutes);
     } else {
-      // Test start time should be greater than start time and test end time should be less than end time
-      return testStartMinutes >= startMinutes && testEndMinutes <= endMinutes;
+      // If test start time is greater than test end time, it means the test time range spans across midnight
+      if (testStartMinutes > testEndMinutes) {
+        return testStartMinutes >= startMinutes || testEndMinutes <= endMinutes;
+      } else {
+        // Test start time should be greater than start time and test end time should be less than end time
+        return testStartMinutes >= startMinutes && testEndMinutes <= endMinutes;
+      }
     }
   }
 

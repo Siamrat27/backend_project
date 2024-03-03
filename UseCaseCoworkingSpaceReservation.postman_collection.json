@@ -35,7 +35,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\":\"adminname\",\r\n    \"email\":\"{{$randomFirstName}}@gmail.com\",\r\n    \"password\":\"12345678\",\r\n    \"role\":\"admin\",\r\n    \"tel\":\"069-478-1116\"\r\n}",
+					"raw": "{\r\n    \"name\":\"adminname\",\r\n    \"email\":\"{{$randomFirstName}}@gmail.com\",\r\n    \"password\":\"12345678\",\r\n    \"role\":\"admin\",\r\n    \"telephone_number\":\"069-478-cdcdc\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -124,7 +124,7 @@
 							"console.log(response);\r",
 							"\r",
 							"\r",
-							"postman.setNextRequest(\"Admin Create Coworkingspace2\");"
+							"postman.setNextRequest(\"Admin View Single Coworkingspace\");"
 						],
 						"type": "text/javascript"
 					}
@@ -145,7 +145,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"name\":\"{{$randomFullName}}\",\r\n\"address\":\"ถนนอำเภอ เมือง\",\r\n\"district\":\"เมือง\",\r\n\"province\":\"นครราชสีมา\",\r\n\"postalcode\":\"55555\",\r\n\"tel\":\"012-345-6789\",\r\n\"opentime\":\"06:00\",\r\n\"closetime\":\"17:00\"\r\n}",
+					"raw": "{\r\n\"name\":\"{{$randomFullName}}\",\r\n\"address\":\"ถนนอำเภอ เมือง\",\r\n\"district\":\"เมือง\",\r\n\"province\":\"นครราชสีมา\",\r\n\"postalcode\":\"55555\",\r\n\"telephone_number\":\"012-345-6789\",\r\n\"opentime\":\"20:00\",\r\n\"closetime\":\"05:00\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -161,6 +161,51 @@
 						"api",
 						"v1",
 						"coworkingspaces"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin View Single Coworkingspace",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"console.log(response);\r",
+							"\r",
+							"postman.setNextRequest(\"Admin Create Coworkingspace2\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/api/v1/coworkingspaces/:coworkingspace_ID",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"coworkingspaces",
+						":coworkingspace_ID"
+					],
+					"variable": [
+						{
+							"key": "coworkingspace_ID",
+							"value": "{{COWORKINGSPACE1}}"
+						}
 					]
 				}
 			},
@@ -183,7 +228,7 @@
 							"\r",
 							"console.log(response);\r",
 							"\r",
-							"postman.setNextRequest(\"Admin Log-out\");"
+							"postman.setNextRequest(\"Admin Edit Coworkingspace\");"
 						],
 						"type": "text/javascript"
 					}
@@ -204,7 +249,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"name\":\"{{$randomFullName}}\",\r\n\"address\":\"ถนนอำเภอ เมือง\",\r\n\"district\":\"เมือง\",\r\n\"province\":\"ปทุมธานี\",\r\n\"postalcode\":\"55555\",\r\n\"tel\":\"012-345-6789\",\r\n\"opentime\":\"06:00\",\r\n\"closetime\":\"17:00\"\r\n}",
+					"raw": "{\r\n\"name\":\"{{$randomFullName}}\",\r\n\"address\":\"ถนนอำเภอ เมือง\",\r\n\"district\":\"เมือง\",\r\n\"province\":\"ปทุมธานี\",\r\n\"postalcode\":\"55555\",\r\n\"telephone_number\":\"012-345-6789\",\r\n\"opentime\":\"06:00\",\r\n\"closetime\":\"17:00\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -220,6 +265,70 @@
 						"api",
 						"v1",
 						"coworkingspaces"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin Edit Coworkingspace",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"console.log(response);\r",
+							"\r",
+							"postman.setNextRequest(\"Admin Log-out\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"{{$randomFullName}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/api/v1/coworkingspaces/:coworkingspace_ID",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"coworkingspaces",
+						":coworkingspace_ID"
+					],
+					"variable": [
+						{
+							"key": "coworkingspace_ID",
+							"value": "{{COWORKINGSPACE2}}"
+						}
 					]
 				}
 			},
@@ -313,7 +422,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"name\":\"username\",\r\n    \"email\":\"{{$randomFirstName}}@gmail.com\",\r\n    \"password\":\"12345678\",\r\n    \"tel\":\"069-478-1116\",\r\n    \"role\":\"user\"\r\n}",
+					"raw": "{\r\n    \"name\":\"username\",\r\n    \"email\":\"{{$randomFirstName}}@gmail.com\",\r\n    \"password\":\"12345678\",\r\n    \"telephone_number\":\"069-478-1116\",\r\n    \"role\":\"user\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -655,7 +764,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"reservationDate\":\"2021-10-02T17:00:00.000Z\",\r\n    \"timereservation\":\"05:00-08:00\"\r\n}",
+					"raw": "{\r\n    \"reservationDate\":\"2021-10-02T17:00:00.000Z\",\r\n    \"timereservation\":\"22:00-01:00\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -980,7 +1089,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"timereservation\":\"07:00-08:00\",\r\n    \"coworkingspace\":\"{{COWORKINGSPACE2}}\"\r\n}",
+					"raw": "{\r\n    \"timereservation\":\"21:00-00:00\",\r\n    \"coworkingspace\":\"{{COWORKINGSPACE2}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
