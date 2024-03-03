@@ -76,10 +76,6 @@ function getEndTime(timeRange) {
     return parts[1].trim();
 }
 
-function parseTime(timeString) {
-    var parts = timeString.split(':');
-    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-}
 
 function isMoreThan3Hours(startTime, endTime) {
     const [startHour, startMinute] = startTime.split(':').map(Number);
@@ -103,23 +99,21 @@ function isMoreThan3Hours(startTime, endTime) {
 
 
 function isInRangeTime(startTime, endTime, testStartTime, testEndTime) {
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-    const [testStartHour, testStartMinute] = testStartTime.split(':').map(Number);
-    const [testEndHour, testEndMinute] = testEndTime.split(':').map(Number);
-
-    const startMinutes = startHour * 60 + startMinute;
-    const endMinutes = endHour * 60 + endMinute;
-    const testStartMinutes = testStartHour * 60 + testStartMinute;
-    const testEndMinutes = testEndHour * 60 + testEndMinute;
-    if (testStartMinutes >= startMinutes && testEndMinutes <= endMinutes) {
-        return true;
+    // Convert time strings to minutes
+    const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+    const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+    const testStartMinutes = parseInt(testStartTime.split(':')[0]) * 60 + parseInt(testStartTime.split(':')[1]);
+    const testEndMinutes = parseInt(testEndTime.split(':')[0]) * 60 + parseInt(testEndTime.split(':')[1]);
+  
+    // If start time is greater than end time, it means the time range spans across midnight
+    if (startMinutes > endMinutes) {
+      // Test start time should be greater than start time and test end time should be less than end time
+      return testStartMinutes >= startMinutes && testEndMinutes <= endMinutes;
+    } else {
+      // Test start time should be greater than start time and test end time should be less than end time
+      return testStartMinutes >= startMinutes && testEndMinutes <= endMinutes;
     }
-    if (testStartMinutes < testEndMinutes && testStartMinutes >= startMinutes && testEndMinutes <= endMinutes) {
-        return true;
-    }
-    return false;
-}
+  }
 
 
 
