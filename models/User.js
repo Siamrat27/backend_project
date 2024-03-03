@@ -34,9 +34,9 @@ const UserSchema=new mongoose.Schema({
         type: Date,
         defult:Date.now
     },
-    tel: {
+    telephone_number: {
         type: String,
-        required:[true,'Please add a tel']
+        required:[true,'Please add a telephone_number']
     }
 });
 

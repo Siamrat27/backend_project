@@ -11,19 +11,19 @@ exports.getReservations=async(req,res,next)=>{
     if(req.user.role!=='admin'){
         query=Reservation.find({user:req.user.id}).populate({
             path:'coworkingspace',
-            select:'name province tel'
+            select:'name province telephone_number'
         });
     } else{//If you are an admin, you can see all!
         if (req.params.coworkingspaceId) { // Corrected to req.params.coworkingspaceId
             console.log(req.params.coworkingspaceId); // Logging the coworkingspaceId parameter
             query = Reservation.find({ coworkingspace: req.params.coworkingspaceId }).populate({
                 path: 'coworkingspace',
-                select: 'name province tel'
+                select: 'name province telephone_number'
             });
         } else {
             query = Reservation.find().populate({
                 path: 'coworkingspace',
-                select: 'name province tel'
+                select: 'name province telephone_number'
             });
         }
     }
@@ -50,7 +50,7 @@ exports.getReservation=async(req,res,next)=>{
     try{
         const reservation=await Reservation.findById(req.params.id).populate({
             path:'coworkingspace',
-            select:'name description tel'
+            select:'name description telephone_number'
         });
         if(!reservation){
             return res.status(404).json({success:false,message:`No reservation with the id of ${req.params.id}`})
