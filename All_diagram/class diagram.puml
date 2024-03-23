@@ -1,0 +1,101 @@
+@startuml
+
+top to bottom direction
+package "CoworkingspaceReservation"{
+    class "<<Application>>\nCoworkingspaceReservationService" as CoworkingspaceReservationService{}
+
+    class "<<Resource>>\nCoworkingspaces" as ResourceCoworkingspaces{
+        <<GET>> + getCoworkingspaces():Coworkingspace
+        <<POST>> + createCoworkingspace():Coworkingspace
+    }
+
+    class "<<Resource>>\nCoworkingspace" as ResourceCoworkingspace {
+        <<GET>> + getCoworkingspace(): Coworkingspace
+        <<PUT>> + updateCoworkingspace(): Coworkingspace
+        <<DELETE>> + deleteCoworkingspace(): void
+    }
+
+    class "<<Representation>>\nCoworkingspace" as RepresentationCoworkingspace {
+        -name
+        -address
+        -district
+        -province
+        -postalcode
+        -telephone_number
+        -opentime
+        -closetime
+    }
+
+    class "<<Resource>>\nReservations" as ResourceReservations2{
+        <<POST>> + addReservations(): Reservation
+
+    }
+
+    class "<<Resource>>\nReservations" as ResourceReservations{
+        <<GET>> + getReservations(): Reservation
+        <<POST>> + addReservation(): Reservation
+    }
+
+    class "<<Resource>>\nReservation" as ResourceReservation{
+        <<GET>> + getReservation(): Reservation
+        <<PUT>> + updateReservation(): Reservation
+        <<DELETE>> + deleteReservation(): void
+    }
+
+    class "<<Representation>>\nReservation" as RepresentationReservation {
+        -reservationDate
+        -user
+        -coworkingspace
+        -timereservation
+        -createAt
+    }
+    
+
+    class "<<Resource>>\nAuthService" as ResourceAuth {
+          
+    }
+
+    class "<<Resource>>\nLoginService" as ResourceAuth_login {
+        <<POST>> + login(): User
+    }
+    class "<<Resource>>\nLogoutService" as ResourceAuth_logout {
+        <<GET>> + logout(): void
+    }
+    class "<<Resource>>\nGet Current User Service" as ResourceAuth_me {
+        <<GET>> + getMe(): User
+    }
+    class "<<Resource>>\nAuth" as ResourceAuth_register {
+        <<POST>> + register(): User
+    }
+    
+
+    class "<<Representation>>\nUser" as RepresentationUser {
+        -name
+        -email
+        -role
+        -password
+        -createdAt
+        -telephone_number
+    }
+
+}
+
+CoworkingspaceReservationService ..> ResourceCoworkingspaces:"{URL}/api/v1/coworkingspaces"
+CoworkingspaceReservationService ..> ResourceReservations:"{URL}/api/v1/reservations"
+CoworkingspaceReservationService ..> ResourceAuth:"{URL}/api/v1/auth"
+ResourceCoworkingspaces ..> ResourceCoworkingspace: "/{coworkingspaceId}"
+ResourceCoworkingspace ..> RepresentationCoworkingspace: "<<use>>"
+ResourceCoworkingspace ..> ResourceReservations2:"/reservations"
+ResourceReservations2 ..> RepresentationReservation: "<<use>>"
+ResourceReservations ..> ResourceReservation: "/{reservationId}"
+ResourceReservation ..> RepresentationReservation: "<<use>>"
+ResourceAuth ..> ResourceAuth_login: "/login"
+ResourceAuth ..> ResourceAuth_logout: "/logout"
+ResourceAuth ..> ResourceAuth_me: "/me"
+ResourceAuth ..> ResourceAuth_register: "/register"
+ResourceAuth_register ..> RepresentationUser: "<<use>>"
+ResourceAuth_logout ..> RepresentationUser: "<<use>>"
+ResourceAuth_me ..> RepresentationUser: "<<use>>"
+ResourceAuth_login ..> RepresentationUser: "<<use>>"
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml Co-working space Use Case Diagram
+top to bottom direction
+actor "User" as user
+rectangle "Co-working space" as CoWorkingSpace {
+    usecase "View all\nCo-working spaces" as viewAllCoworkingspaces
+    usecase "View single\nCo-working space" as viewSingleCoworkingspace
+    usecase "Create single\nCo-working space" as createSingleCoworkingspace
+    usecase "update single\nCo-working space" as updateSingleCoworkingspace
+    usecase "Delete single\nhospital" as deleteSingleCoworkingspace
+
+    usecase "Register" as register
+    usecase "Log in" as login
+    usecase "Log out" as logout
+
+    usecase "Get all\nreservation" as getAllReservation
+    usecase "Get\nreservation\nby ID" as getReservation
+    usecase "Create\nreservation\n" as createReservation
+    usecase "Update\nreservation\nby ID" as updateReservation
+    usecase "Delete\nreservation\nby ID" as deleteReservation
+}
+user -- viewAllCoworkingspaces #FF0000
+user -- viewSingleCoworkingspace #FF0000
+user -- register #FF0000
+user -- login #FF0000
+user -- logout #FF0000
+user -- getAllReservation #FF0000 : <color red>manage his own reservation</color>
+user -- getReservation #FF0000 : <color red>manage his own reservation</color>
+user -- createReservation #FF0000 : <color red>manage his own reservation</color>
+user -- updateReservation #FF0000 : <color red>manage his own reservation</color>
+user -- deleteReservation #FF0000: <color red>manage his own reservation</color>
+
+
+actor "Admin" as admin
+viewAllCoworkingspaces -- admin #0000FF
+viewSingleCoworkingspace -- admin #0000FF
+createSingleCoworkingspace -- admin #0000FF
+updateSingleCoworkingspace -- admin #0000FF
+deleteSingleCoworkingspace -- admin #0000FF
+register -- admin #0000FF
+login -- admin #0000FF
+logout -- admin #0000FF
+getAllReservation -- admin #0000FF
+getReservation -- admin #0000FF
+createReservation -- admin #0000FF
+updateReservation -- admin #0000FF
+deleteReservation -- admin #0000FF
+
+
+@enduml

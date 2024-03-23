@@ -1,0 +1,187 @@
+@startuml Reservation
+title "Reservation"
+actor "User" as user
+actor "Admin" as admin
+participant "Server" as server
+participant "<<routes>>\nreservations" as routesReservations
+participant "<<middleware>>\nauth" as middleware
+participant "<<controllers>>\nreservations" as controllersReservations
+participant "<<models>>\nUser" as modelsUser
+participant "<<models>>\nCoworkingspace" as modelsCoworkingspaces
+participant "<<models>>\nReservation" as modelsReservation
+participant "MongoDB" as mongodb
+
+user ++
+admin ++
+server ++
+routesReservations ++ 
+middleware ++ 
+controllersReservations ++
+modelsUser ++ 
+modelsReservation ++ 
+modelsCoworkingspaces ++
+mongodb ++
+
+/'Get all reservation'/
+opt
+    user->server : req.get('/api/v1/reservations')
+    admin->server
+    server->routesReservations : app.use('/api/v1/reservations',reservations)
+    routesReservations->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesReservations : next()
+    routesReservations->controllersReservations : get('/',getReservations)
+
+    alt if role is user
+        controllersReservations->modelsReservation : Reservation.find({user:req.user.id}).populate({\npath:'coworkingspace',\nselect:'name province telephone_number'})
+        modelsReservation->mongodb : find({user:req.user.id}).populate({\npath:'coworkingspace',\nselect:'name province telephone_number'})
+    else if role is admin
+        alt Corrected to req.params.coworkingspaceId
+        controllersReservations->modelsReservation : Reservation.find({ coworkingspace: req.params.coworkingspaceId }).populate({\npath: 'coworkingspace',\nselect: 'name province telephone_number'})
+        modelsReservation->mongodb : find({coworkingspace: req.params.coworkingspaceId }).populate({\npath: 'coworkingspace',\nselect: 'name province telephone_number'})
+        else if cannot req.params.coworkingspaceId
+        controllersReservations->modelsReservation : Reservation.find().populate({\npath: 'coworkingspace',\nselect: 'name province telephone_number'})
+        modelsReservation->mongodb : find().populate({\npath: 'coworkingspace',\nselect: 'name province telephone_number'})
+        end
+    end
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations-->server : reservation
+    server->user : reservation
+end
+
+/'Get reservation by id'/
+opt
+    user->server : req.get('/api/v1/reservations/:id')
+    admin->server
+    server->routesReservations : app.use('/api/v1/reservations',reservations)
+    routesReservations->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesReservations : next()
+    routesReservations->controllersReservations : get(/:id, getReservation)
+    controllersReservations->modelsReservation : Reservation.findById(req.params.id).populate({\npath:'coworkingspace',\nselect:'name description telephone_number'})
+    modelsReservation->mongodb : findById(req.params.id).populate({\npath:'coworkingspace',\nselect:'name description telephone_number'})
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations-->routesReservations : reservation
+    routesReservations-->server : reservation
+    server-->user : reservation
+    server-->admin 
+end
+
+/'Create reservaiton'/
+opt
+    user->server : req.post('/api/v1/coworkingspaces/:id/reservations')
+    admin->server 
+    server->routesReservations : app.use('/api/v1/reservations',reservations)
+    routesReservations->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesReservations : next()
+    routesReservations->middleware : authorize('admin')
+    middleware->middleware : roles.includes(req.user.role)
+    middleware-->routesReservations : next()
+    routesReservations->controllersReservations : post('/',addReservation)
+    controllersReservations->modelsReservation : Coworkingspace.findById(req.params.coworkingspaceId)
+    modelsReservation->mongodb : findById(req.params.coworkingspaceId)
+    mongodb-->modelsReservation : coworkingspace
+    modelsReservation-->controllersReservations : coworkingspace
+    controllersReservations->modelsReservation : Reservation.find({user:req.user.id})
+    modelsReservation->mongodb : find({user:req.user.id})
+    mongodb-->modelsReservation : reservation
+    modelsReservation->controllersReservations : reservation
+    alt if user is user
+        controllersReservations->controllersReservations : if(existedReservations.length>=3)
+        controllersReservations->controllersReservations : if(!isInRangeTime(coworkingspace.opentime,\ncoworkingspace.closetime,\nreservationTimeStart,reservationTimeEnd))
+        controllersReservations->controllersReservations : if(isMoreThan3Hours(reservationTimeStart,reservationTimeEnd))
+    else user is admin
+        controllersReservations->controllersReservations : if(!isInRangeTime(coworkingspace.opentime,\ncoworkingspace.closetime,\nreservationTimeStart,reservationTimeEnd))
+        controllersReservations->controllersReservations : if(isMoreThan3Hours(reservationTimeStart,reservationTimeEnd))
+    end
+    controllersReservations->modelsReservation : Reservation.create(req.body)
+    modelsReservation->mongodb : create(req.body)
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations->routesReservations : response
+    routesReservations->server : response
+    server->user : response
+    server->admin
+end
+
+/'Update reservation'/
+opt
+    user->server : req.put('/api/v1/reservations/:id')
+    admin->server 
+    server->routesReservations : app.use('/api/v1/reservations',reservations)
+    routesReservations->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesReservations : next()
+    routesReservations->middleware : authorize('admin')
+    middleware->middleware : roles.includes(req.user.role)
+    middleware-->routesReservations : next()
+    routesReservations->controllersReservations: put('/:id', updateReservation)
+    controllersReservations->modelsReservation : Reservation.findById(req.params.id)
+    modelsReservation->mongodb : findById(req.params.id)
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations->modelsCoworkingspaces : Coworkingspace.findById(reservation.coworkingspace)
+    modelsCoworkingspaces->mongodb : findById(reservation.coworkingspace)
+    mongodb-->modelsCoworkingspaces : coworkingspaces
+    modelsCoworkingspaces-->controllersReservations : coworkingspaces
+    controllersReservations->controllersReservations : if(!isInRangeTime(coworkingspace.opentime,\ncoworkingspace.closetime,\nreservationTimeStart,reservationTimeEnd))
+    controllersReservations->controllersReservations : if(isMoreThan3Hours(reservationTimeStart,reservationTimeEnd))
+    controllersReservations->modelsReservation : Reservation.findByIdAndUpdate(req.params.id,req.body,{\nnew:true,\nrunValidators:true})
+    modelsReservation->mongodb : findByIdAndUpdate(req.params.id,req.body,{\nnew:true,\nrunValidators:true})
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations--> routesReservations : response
+    routesReservations-->server: response
+    server-->user : response
+    server-->admin
+end
+
+/'Delete reservation'/
+opt
+    user->server : req.delete('/api/v1/reservation/:id')
+    admin->server 
+    server->routesReservations : app.use('/api/v1/reservations',reservations)
+    routesReservations->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesReservations : next()
+    routesReservations->middleware : authorize('admin')
+    middleware->middleware : roles.includes(req.user.role)
+    middleware-->routesReservations : next()
+    routesReservations->controllersReservations : delete(':/id',deleteReservation)
+    controllersReservations->modelsReservation : Reservation.findById(req.params.id)
+    modelsReservation->mongodb : findById(req.params.id)
+    mongodb-->modelsReservation : reservation
+    modelsReservation-->controllersReservations : reservation
+    controllersReservations->modelsReservation : reservation.deleteOne()
+    modelsReservation->mongodb : deleteOne()
+    mongodb-->modelsReservation:response
+    modelsReservation-->controllersReservations:response
+    controllersReservations-->routesReservations : response
+    routesReservations-->server : response
+    server-->user : response
+    server-->admin
+end
+@enduml

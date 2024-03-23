@@ -1,0 +1,131 @@
+@startuml Coworkingspaces
+
+title "Coworkingspace"
+participant "User" as user
+participant "Admin" as admin
+participant "Server" as server
+participant "<<routes>>\ncoworkingspaces" as routesCoworkingspaces
+participant "<<middleware>>\nauth" as middleware
+participant "<<controllers>>\ncoworkingspaces" as controllersCoworkingspaces
+participant "<<models>>\nUser" as modelsUser
+participant "<<models>>\nCoworkingspace" as modelsCoworkingspaces
+participant "MongoDB" as mongodb
+
+    user ++
+    admin ++ 
+    routesCoworkingspaces ++
+    middleware ++ 
+    controllersCoworkingspaces ++
+    modelsUser ++
+    modelsCoworkingspaces ++
+    mongodb ++
+
+/'Get all coworkingspaces'/
+opt
+    user->server : req.get('api/v1/coworkingspaces')
+    admin->server : req.get('api/v1/coworkingspaces')
+    server->routesCoworkingspaces : app.use('/api/v1/coworkingspaces',coworkingspaces)
+    routesCoworkingspaces -> controllersCoworkingspaces : get('/',getCoworkingspaces)
+    controllersCoworkingspaces->modelsCoworkingspaces : Coworkingspace.find(JSON.parse(queryStr)).populate('reservations')
+    modelsCoworkingspaces -> mongodb : Coworkingspace.find(JSON.parse(queryStr)).populate('reservations')
+    mongodb-->modelsCoworkingspaces : Coworkingspaces
+    modelsCoworkingspaces->controllersCoworkingspaces:Coworkingspaces
+    controllersCoworkingspaces->controllersCoworkingspaces : req.query.select
+    controllersCoworkingspaces->controllersCoworkingspaces : req.query.sort
+    modelsCoworkingspaces-->routesCoworkingspaces:Coworkingspaces
+    routesCoworkingspaces-->server : response
+    server->admin : response
+    server->user : response
+end 
+
+/'Get single coworkingspaces'/
+opt
+    user->server : req.get('api/v1/coworkingspaces/:id')
+    admin->server : req.get('api/v1/coworkingspaces/:id')
+    server->routesCoworkingspaces : app.use('/api/v1/coworkingspaces',coworkingspaces)
+    routesCoworkingspaces->controllersCoworkingspaces : get('/:id',getCoworkingspaces)
+    controllersCoworkingspaces->modelsCoworkingspaces : Coworkingspace.findById(req.params.id)
+    modelsCoworkingspaces->mongodb : findById(req.params.id)
+    mongodb-->modelsCoworkingspaces:Coworkingspaces
+    modelsCoworkingspaces-->controllersCoworkingspaces:Coworkingspaces
+    controllersCoworkingspaces-->routesCoworkingspaces:Coworkingspaces
+    routesCoworkingspaces->server:response
+    server->admin : response
+    server->user : response
+end
+
+/'Create coworkingspaces'/
+opt
+    admin->server :req.post('api/v1/coworkingspaces')
+    server->routesCoworkingspaces : app.use('/api/v1/coworkingspaces',coworkingspaces)
+    routesCoworkingspaces->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb :findById(decoded.id)
+    mongodb-->modelsUser :user
+    modelsUser-->middleware : user
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->middleware : authorize('admin')
+    middleware->middleware : role.includes(req.user.role)
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->controllersCoworkingspaces : post('/',createCoworkingspace)
+    controllersCoworkingspaces->modelsCoworkingspaces : Coworkingspace.create(req.body)
+    modelsCoworkingspaces->mongodb : create(req.body)
+    mongodb-->modelsCoworkingspaces: Coworkingspaces
+    modelsCoworkingspaces-->controllersCoworkingspaces : Coworkingspaces
+    controllersCoworkingspaces-->routesCoworkingspaces : Coworkingspaces
+    routesCoworkingspaces-->server : response
+    server-->admin : response
+end
+
+
+/'Update coworkingspaces'/
+opt
+    admin->server :req.put('api/v1/coworkingspaces/:id')
+    server->routesCoworkingspaces : app.use('/api/v1/coworkingspaces',coworkingspaces)
+    routesCoworkingspaces->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb :findById(decoded.id)
+    mongodb-->modelsUser :user
+    modelsUser-->middleware : user
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->middleware : authorize('admin')
+    middleware->middleware : role.includes(req.user.role)
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->controllersCoworkingspaces : put(':/id',updateCoworkingspace)
+    controllersCoworkingspaces->modelsCoworkingspaces : Coworkingspace.findByIdAndUpdate(req.params.id,\nreq.body,{new:true,runValidators:true})
+    modelsCoworkingspaces->mongodb : findByIdAndUpdate(req.params.id,\nreq.body,{new: true,runValidators: true})
+    mongodb-->modelsCoworkingspaces : Coworkingspaces
+    modelsCoworkingspaces-->controllersCoworkingspaces : Coworkingspaces
+    controllersCoworkingspaces-->routesCoworkingspaces : Coworkingspaces
+    routesCoworkingspaces-->server:response
+end
+
+/'Delete coworkingspaces'/
+opt
+    admin->server :req.delete('api/v1/coworkingspaces/:id')
+    server->routesCoworkingspaces : app.use('/api/v1/coworkingspaces',coworkingspaces)
+    routesCoworkingspaces->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->middleware : authorize('admin')
+    middleware->middleware : role.includes(req.user.role)
+    middleware-->routesCoworkingspaces : next()
+    routesCoworkingspaces->controllersCoworkingspaces : delete(':/id',deleteCoworkingspace)
+    controllersCoworkingspaces->modelsCoworkingspaces : Coworkingspace.findById(req.params.id)
+    modelsCoworkingspaces->mongodb : findById(req.params.id)
+    mongodb-->modelsCoworkingspaces : Coworkingspace
+    controllersCoworkingspaces->modelsCoworkingspaces : coworkingspace.deleteOne()
+    modelsCoworkingspaces->mongodb : deleteOne()
+    mongodb-->modelsCoworkingspaces : response
+    modelsCoworkingspaces-->controllersCoworkingspaces : response
+    controllersCoworkingspaces-->routesCoworkingspaces : response
+    routesCoworkingspaces-->server : response
+end
+
+@enduml

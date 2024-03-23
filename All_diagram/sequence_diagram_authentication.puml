@@ -1,0 +1,86 @@
+@startuml Authentication
+title "Authentication"
+actor "User & Admin" as person
+participant "Server" as server
+participant "<<routes>>\nauth" as routesAuth
+participant "<<middleware>>\nauth" as middleware
+participant "<<controllers>>\nauth" as controllersAuth
+participant "<<models>>\nUser" as modelsUser
+participant "MongoDB" as mongodb
+
+person ++
+server ++
+routesAuth ++ 
+middleware ++ 
+controllersAuth ++
+modelsUser ++ 
+mongodb ++
+
+/'Register'/
+opt 
+    person->server : req.post('/api/v1/auth/register')
+    server->routesAuth : app.use('/api/v1/auth',auth)
+    routesAuth->controllersAuth : post('/register',register)
+    controllersAuth->modelsUser : User.create({name,email,role,password,telephone_number})
+    modelsUser->mongodb : create({name,email,role,password,telephone_number})
+    mongodb-->modelsUser : user
+    modelsUser-->controllersAuth : user
+    controllersAuth->controllersAuth : sendTokenResponse
+    controllersAuth->modelsUser : user.getSignedJwtToken()
+    modelsUser-->controllersAuth : token
+    controllersAuth-->routesAuth : response
+    routesAuth-->server : response
+    server-->person : response 
+end
+
+/'Login'/
+opt
+    person->server : req.post('/api/v1/auth/login')
+    server->routesAuth : app.use('/api/v1/auth',auth)
+    routesAuth->controllersAuth : post('/login',login)
+    controllersAuth->modelsUser : User.findOne({email}).select('password')
+    modelsUser->mongodb : findOne({email}).select('password')
+    mongodb-->modelsUser : user
+    modelsUser-->controllersAuth : user
+    controllersAuth->modelsUser : user.matchPassword(password)
+    modelsUser-->controllersAuth : isMatch
+    controllersAuth->controllersAuth : sendTokenResponse
+    controllersAuth->modelsUser : user.getSignedJwtToken()
+    modelsUser-->controllersAuth : token
+    controllersAuth-->routesAuth : response
+    routesAuth-->server : response
+    server-->person : response 
+end
+
+/'Logout'/
+opt
+    person->server : req.get('/api/v1/auth/logout')
+    server->routesAuth : app.use('/api/v1/auth',auth)
+    routesAuth->controllersAuth : get('/logout',logout)
+    controllersAuth->controllersAuth : res.cookie('token','none',\n{expires: new Date(Date.now()+10*1000)\n,httpOnly:true})
+    controllersAuth-->routesAuth : response
+    routesAuth-->server : response
+    server-->person : response
+end
+
+/'getMe'/
+opt
+    person->server : req.get('/api/v1/auth/me')
+    server->routesAuth : app.use('/api/v1/auth',auth)
+    routesAuth->middleware : protect(token)
+    middleware->middleware : decoded
+    middleware->modelsUser : User.findById(decoded.id)
+    modelsUser->mongodb : findById(decoded.id)
+    mongodb-->modelsUser : user
+    modelsUser-->middleware : user
+    middleware-->routesAuth : next()
+    routesAuth->controllersAuth : get('/me')
+    controllersAuth->modelsUser : User.findById(req.user.id)
+    modelsUser->mongodb : findById(req.user.id)
+    mongodb-->modelsUser : user
+    modelsUser-->controllersAuth : user
+    controllersAuth-->routesAuth : response
+    routesAuth-->server : response
+    server-->person : response
+end
+@enduml
